@@ -1,67 +1,52 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { RouterModule } from '@angular/router';
-import { MenubarModule } from 'primeng/menubar';
-import { MenuItem } from 'primeng/api';
+import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-navbar',
   standalone: true,
-  imports: [RouterModule, MenubarModule],
-  template: `
-    <p-menubar [model]="menuItems">
-      <ng-template pTemplate="start">
-        <div class="p-mr-2">
-          <h3>Constructora XYZ</h3>
-        </div>
-      </ng-template>
-    </p-menubar>
-  `,
-  styles: [`
-    :host ::ng-deep .p-menubar {
-      background-color: #007bff;
-      border: none;
-    }
-    :host ::ng-deep .p-menubar .p-menuitem-link {
-      color: white;
-    }
-    :host ::ng-deep .p-menubar .p-menuitem-link:hover {
-      background-color: rgba(255, 255, 255, 0.1);
-    }
-  `]
+  imports: [RouterModule, CommonModule],
+  templateUrl: './navbar.component.html',
+  styleUrls: ['./navbar.component.scss']
 })
-export class NavbarComponent {
-  menuItems: MenuItem[] = [
-    {
-      label: 'Inicio',
-      routerLink: '/home'
-    },
-    {
-      label: 'Proyectos',
-      items: [
-        {
-          label: 'Edificaciones',
-          routerLink: '/projects',
-          queryParams: { category: 'edificaciones' }
-        },
-        {
-          label: 'Casas',
-          routerLink: '/projects',
-          queryParams: { category: 'casas' }
-        },
-        {
-          label: 'Remodelaciones',
-          routerLink: '/projects',
-          queryParams: { category: 'remodelaciones' }
-        }
-      ]
-    },
-    {
-      label: 'Blog',
-      routerLink: '/blog'
-    },
-    {
-      label: 'Contacto',
-      routerLink: '/contact'
-    }
+export class NavbarComponent implements OnInit {
+  isMenuOpen = false;
+
+  menuItems = [
+    { label: 'Inicio', route: '/home', active: true },
+    { label: 'Nosotros', route: '/about', active: false },
+    { label: 'Servicios', route: '/services', active: false },
+    { label: 'Proyectos', route: '/projects', active: false },
+    { label: 'Blog', route: '/blog', active: false },
+    { label: 'Contacto', route: '/contact', active: false }
   ];
+
+  ngOnInit() {
+    // Update active state based on current route
+    this.updateActiveMenuItem();
+  }
+
+  toggleMenu() {
+    this.isMenuOpen = !this.isMenuOpen;
+  }
+
+  closeMenu() {
+    this.isMenuOpen = false;
+  }
+
+  navigateTo(route: string) {
+    this.closeMenu();
+    // Update active state
+    for (const item of this.menuItems) {
+      item.active = item.route === route;
+    }
+  }
+
+  private updateActiveMenuItem() {
+    // This would typically use Router to get current route
+    // For now, we'll set home as active by default
+    for (const item of this.menuItems) {
+      item.active = item.route === '/home';
+    }
+  }
 }
