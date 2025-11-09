@@ -1,0 +1,95 @@
+# cahnge to test cd
+name: Deploy Frontend to Production # nombre del workflow
+
+on:
+  pull_request:
+    branches:
+      - deploy-frontend
+    paths:
+      - 'labs/frontend/**'
+  workflow_dispatch: # Permite ejecutar manualmente el workflow
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: labs/frontend/package-lock.json
+      
+      - name: Install dependencies
+        working-directory: labs/frontend
+        run: npm ci
+      
+      - name: Build Angular app
+        working-directory: labs/frontend
+        run: npm run build -- --configuration production
+      
+      - name: Create deployment package
+        working-directory: labs/frontend
+        run: |
+          cd dist/frontend/browser
+          tar -czf ../../../frontend-build.tar.gz *
+      
+      - name: Deploy to server via SSH
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }} # 74.208.97.197 servidor de produccion
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT || 22 }}
+          source: "labs/frontend/frontend-build.tar.gz"
+          target: "/tmp/"
+          strip_components: 2
+      
+      - name: Extract and move files on server
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT || 22 }}
+          script: |
+            # Definir directorio de destino (ajusta según tu servidor)
+            DEPLOY_DIR=${{ secrets.DEPLOY_PATH }}
+            
+            # Crear backup del deployment anterior
+            if [ -d "$DEPLOY_DIR" ]; then
+              BACKUP_DIR="${DEPLOY_DIR}_backup_$(date +%Y%m%d_%H%M%S)"
+              echo "Creating backup at $BACKUP_DIR"
+              cp -r "$DEPLOY_DIR" "$BACKUP_DIR"
+            fi
+            
+            # Crear directorio si no existe
+            mkdir -p "$DEPLOY_DIR"
+            
+            # Extraer archivos
+            echo "Extracting files to $DEPLOY_DIR"
+            tar -xzf /tmp/frontend-build.tar.gz -C "$DEPLOY_DIR"
+            
+            # Limpiar archivo temporal
+            rm /tmp/frontend-build.tar.gz
+            
+            # Ajustar permisos (ajusta según tu configuración)
+            chmod -R 755 "$DEPLOY_DIR"
+            
+            echo "Deployment completed successfully!"
+            
+            # Opcional: Limpiar backups antiguos (mantener solo los últimos 5)
+            ls -dt ${DEPLOY_DIR}_backup_* 2>/dev/null | tail -n +6 | xargs rm -rf
+      
+      - name: Notify deployment status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "✅ Deployment successful!"
+          else
+            echo "❌ Deployment failed!"
+          fi
