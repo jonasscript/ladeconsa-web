@@ -1,5 +1,5 @@
 # cahnge to test cd
-name: Deploy Frontend to Production # nombre del workflow
+name: Deploy Frontend # 1. Nombre del workflow ajustado
 
 on:
   pull_request:
@@ -16,39 +16,43 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-      
+        
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20'
           cache: 'npm'
           cache-dependency-path: labs/frontend/package-lock.json
-      
+        
       - name: Install dependencies
         working-directory: labs/frontend
         run: npm ci
-      
+        
       - name: Build Angular app
         working-directory: labs/frontend
         run: npm run build -- --configuration production
-      
+        
       - name: Create deployment package
         working-directory: labs/frontend
         run: |
-          cd dist/frontend/browser
+          # Importante: verifica la estructura de tu carpeta 'dist'
+          # Generalmente es dist/frontend
+          cd dist/frontend
           tar -czf ../../../frontend-build.tar.gz *
-      
+        
       - name: Deploy to server via SSH
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.SERVER_HOST }} # 74.208.97.197 servidor de produccion
+          host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
-          port: ${{ secrets.SERVER_PORT || 22 }}
+          # Namecheap/cPanel a menudo usa el puerto SSH 22 o 21098
+          port: ${{ secrets.SERVER_PORT || 22 }} 
           source: "labs/frontend/frontend-build.tar.gz"
           target: "/tmp/"
-          strip_components: 2
-      
+          # strip_components: 2 es correcto si el tar contiene 'dist/frontend/browser/...'
+          strip_components: 2 
+        
       - name: Extract and move files on server
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -57,34 +61,49 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT || 22 }}
           script: |
-            # Definir directorio de destino (ajusta según tu servidor)
-            DEPLOY_DIR=${{ secrets.DEPLOY_PATH }}
+            # Definir directorio de destino (AJUSTE CLAVE para Namecheap/cPanel)
+            # EJEMPLO 1: Dominio Principal: /home/cpaneluser/public_html
+            # EJEMPLO 2: Dominio Adicional: /home/cpaneluser/public_html/nombre-dominio-adicional/
+            # Utiliza la ruta absoluta comenzando desde /home/
             
-            # Crear backup del deployment anterior
+            # **Asegúrate de reemplazar 'TU_USUARIO_CPANEL' y 'tu.dominio.com'**
+            # Si tu app va en la raíz de public_html:
+            # DEPLOY_DIR=/home/ladesvww/public_html
+            
+            # --- Lógica de Despliegue (sin cambios) ---
+            
+            # 1. Crear backup del deployment anterior
             if [ -d "$DEPLOY_DIR" ]; then
               BACKUP_DIR="${DEPLOY_DIR}_backup_$(date +%Y%m%d_%H%M%S)"
               echo "Creating backup at $BACKUP_DIR"
-              cp -r "$DEPLOY_DIR" "$BACKUP_DIR"
+              # **Atención:** En cPanel, 'cp -r' puede ser lento. Es mejor mover el directorio y luego renombrar el nuevo.
+              mv "$DEPLOY_DIR" "$BACKUP_DIR"
             fi
             
-            # Crear directorio si no existe
-            mkdir -p "$DEPLOY_DIR"
+            # 2. Crear un directorio temporal para la extracción
+            TEMP_DIR="/tmp/frontend_extract_$$" # Directorio temporal único
+            mkdir -p "$TEMP_DIR"
             
-            # Extraer archivos
-            echo "Extracting files to $DEPLOY_DIR"
-            tar -xzf /tmp/frontend-build.tar.gz -C "$DEPLOY_DIR"
+            # 3. Extraer archivos en el temporal
+            echo "Extracting files to $TEMP_DIR"
+            tar -xzf /tmp/frontend-build.tar.gz -C "$TEMP_DIR"
             
-            # Limpiar archivo temporal
+            # 4. Mover los archivos extraídos al directorio final (esto es más atómico y seguro que la extracción directa)
+            mv "$TEMP_DIR" "$DEPLOY_DIR"
+            
+            # 5. Limpiar archivo temporal (tar.gz)
             rm /tmp/frontend-build.tar.gz
             
-            # Ajustar permisos (ajusta según tu configuración)
+            # 6. Ajustar permisos
+            # Namecheap a menudo requiere 755 para directorios y 644 para archivos
             chmod -R 755 "$DEPLOY_DIR"
             
-            echo "Deployment completed successfully!"
+            echo "Deployment completed successfully to $DEPLOY_DIR!"
             
-            # Opcional: Limpiar backups antiguos (mantener solo los últimos 5)
-            ls -dt ${DEPLOY_DIR}_backup_* 2>/dev/null | tail -n +6 | xargs rm -rf
-      
+            # 7. Limpiar backups antiguos (mantener solo los últimos 5)
+            # Asegúrate que el patron de búsqueda solo incluya los backups creados:
+            ls -dt ${DEPLOY_DIR%/*}/$(basename "$DEPLOY_DIR")_backup_* 2>/dev/null | tail -n +6 | xargs rm -rf
+        
       - name: Notify deployment status
         if: always()
         run: |
