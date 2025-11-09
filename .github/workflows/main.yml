@@ -32,65 +32,51 @@ jobs:
         working-directory: frontend
         run: npm run build -- --configuration production
         
-      - name: Create deployment package
-        working-directory: frontend
-        run: |
-          cd dist/frontend
-          tar -czf ../../frontend-build.tar.gz *
-        
-      - name: Deploy to server via SSH
-        uses: appleboy/scp-action@v0.1.7
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USERNAME }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          port: ${{ secrets.SERVER_PORT }}
-          source: "frontend/frontend-build.tar.gz"
-          target: "/tmp/"
-          strip_components: 1
-          timeout: 60s
-          command_timeout: 10m
-        
-      - name: Extract and move files on server
+      - name: Backup existing files on server
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USERNAME }}
           key: ${{ secrets.SERVER_SSH_KEY }}
           port: ${{ secrets.SERVER_PORT }}
-          timeout: 60s
+          timeout: 180s
           command_timeout: 10m
           script: |
             DEPLOY_DIR=/home/ladesvww/public_html
+            TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+            BACKUP_DIR="${DEPLOY_DIR}_backup_${TIMESTAMP}"
             
-            # 1. Crear backup del deployment anterior
-            if [ -d "$DEPLOY_DIR" ]; then
-              BACKUP_DIR="${DEPLOY_DIR}_backup_$(date +%Y%m%d_%H%M%S)"
+            # Crear backup si existe el directorio
+            if [ -d "$DEPLOY_DIR" ] && [ "$(ls -A $DEPLOY_DIR 2>/dev/null)" ]; then
               echo "Creating backup at $BACKUP_DIR"
-              mv "$DEPLOY_DIR" "$BACKUP_DIR"
+              cp -r "$DEPLOY_DIR" "$BACKUP_DIR"
+              echo "Backup created successfully"
+              
+              # Limpiar archivos actuales pero mantener el directorio
+              rm -rf "$DEPLOY_DIR"/*
+              echo "Current files cleared"
+            else
+              echo "No existing files to backup"
             fi
             
-            # 2. Crear un directorio temporal para la extracción
-            TEMP_DIR="/tmp/frontend_extract_$$"
-            mkdir -p "$TEMP_DIR"
-            
-            # 3. Extraer archivos en el temporal
-            echo "Extracting files to $TEMP_DIR"
-            tar -xzf /tmp/frontend-build.tar.gz -C "$TEMP_DIR"
-            
-            # 4. Mover los archivos extraídos al directorio final
-            mv "$TEMP_DIR" "$DEPLOY_DIR"
-            
-            # 5. Limpiar archivo temporal
-            rm /tmp/frontend-build.tar.gz
-            
-            # 6. Ajustar permisos
-            chmod -R 755 "$DEPLOY_DIR"
-            
-            echo "Deployment completed successfully to $DEPLOY_DIR!"
-            
-            # 7. Limpiar backups antiguos (mantener solo los últimos 5)
-            ls -dt ${DEPLOY_DIR%/*}/$(basename "$DEPLOY_DIR")_backup_* 2>/dev/null | tail -n +6 | xargs rm -rf
+            # Limpiar backups antiguos (mantener solo los últimos 5)
+            cd /home/ladesvww
+            ls -dt public_html_backup_* 2>/dev/null | tail -n +6 | xargs rm -rf 2>/dev/null || true
+            echo "Old backups cleaned"
+      
+      - name: Deploy to server via SCP
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USERNAME }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          port: ${{ secrets.SERVER_PORT }}
+          source: "frontend/dist/frontend/*"
+          target: "/home/ladesvww/public_html/"
+          strip_components: 3
+          rm: false
+          timeout: 300s
+          command_timeout: 15m
         
       - name: Notify deployment status
         if: always()
