@@ -1,0 +1,202 @@
+<!-- Hero Section -->
+<section class="hero-section">
+  <div class="hero-content">
+    <div class="hero-text">
+      <h1 class="hero-title" [class.animate]="isTransitioning">
+        <span class="hero-title-line" [class.animate]="isTransitioning">{{ currentSlide.title }}</span>
+        <br>
+        <span class="hero-title-line delay" [class.animate]="isTransitioning">{{ currentSlide.subtitle }}</span>
+      </h1>
+      <div class="hero-nav">
+        <button class="nav-item" (click)="nextSlide(); resetAutoSlide()" type="button">
+          <span class="nav-text">siguiente</span>
+          <div class="nav-line"></div>
+        </button>
+        <button class="nav-item" (click)="prevSlide()" type="button">
+          <div class="nav-line"></div>
+          <span class="nav-text">anterior</span>
+        </button>
+      </div>
+    </div>
+    <div class="hero-image">
+      <img [src]="currentSlide.image" [class.animate]="isTransitioning" alt="Construcción moderna" class="hero-slide-image">
+    </div>
+    <div class="hero-number" [class.animate]="isTransitioning">{{ currentSlide.number }}</div>
+  </div>
+</section>
+
+<!-- Nuestro Compromiso Section -->
+<section class="compromiso-section">
+  <div class="compromiso-container">
+    <div class="compromiso-left">
+      <img src="assets/home/mision.png" alt="Nuestro compromiso" class="compromiso-img">
+    </div>
+    <div class="compromiso-right">
+      <h2 class="compromiso-title">Nuestro compromiso</h2>
+      <div class="compromiso-divider"></div>
+      <div class="compromiso-text">
+        <p class="compromiso-label">Misión</p>
+        <p class="compromiso-description">Generar competitividad y rentabilidad a nuestros clientes en todos sus proyectos, desarrollando ingeniería del más alto nivel, a través del cumplimiento las Normas y Códigos nacionales e internacionales vigentes en el diseño de estructuras y constructivo</p>
+        
+        <p class="compromiso-label">Visión</p>
+        <p class="compromiso-description">Lograr posicionarnos como una de las empresas más reconocidas de consultoría e ingeniería a nivel nacional.</p>
+      </div>
+      <button class="btn-yellow">Leer más</button>
+    </div>
+  </div>
+</section>
+
+<!-- Obras Realizadas Section -->
+<section class="obras-section">
+  <div class="obras-container">
+    <div class="obras-header">
+      <div class="obras-divider"></div>
+      <h2 class="obras-title">Obras realizadas</h2>
+      <div class="obras-nav obras-nav-mobile">
+        <div class="obras-nav-item">
+          <div class="obras-nav-line"></div>
+          <span class="obras-nav-text">Anterior</span>
+        </div>
+        <div class="obras-nav-item">
+          <span class="obras-nav-text">Siguiente</span>
+          <div class="obras-nav-line"></div>
+        </div>
+      </div>
+    </div>
+    <p class="obras-intro">Clientes que han confiado en nuestra experiencia para construir sus proyectos con calidad y compromiso, construimos relaciones sólidas con cada cliente, basadas en calidad y cumplimiento.</p>
+    
+    <div class="obras-grid">
+      <div class="obras-images-container">
+        <img src="assets/home/terminal_duran2.png" alt="Terminal de Durán interior" class="obra-img-back">
+        <img src="assets/home/terminal_duran1.png" alt="Terminal de Durán exterior" class="obra-img-front">
+      </div>
+      <div class="obras-info">
+        <h3 class="obra-title">Terminal terrestre<br>de Durán</h3>
+        <p class="obra-description">La terminal terrestre de Durán, llamada "Luis Rodas Toral", se inauguró en 2012. Sus características principales incluyen 17 mil metros cuadrados de construcción, 24 boleterías, 24 andenes, y una infraestructura que ofrece vías de tráfico interno, sala de espera, y servicios para personas con discapacidad.</p>
+        <div class="obras-nav obras-nav-desktop">
+          <div class="obras-nav-item">
+            <div class="obras-nav-line"></div>
+            <span class="obras-nav-text">Anterior</span>
+          </div>
+          <div class="obras-nav-item">
+            <span class="obras-nav-text">Siguiente</span>
+            <div class="obras-nav-line"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <button class="btn-yellow-center">Ver todos</button>
+  </div>
+</section>
+
+<!-- Nuestros Proyectos Section -->
+<section class="proyectos-section">
+  <div class="proyectos-container">
+    <div class="proyectos-yellow-box">
+      <p class="proyectos-yellow-text">A lo largo de nuestra trayectoria hemos desarrollado proyectos para diversos clientes, incluyendo casas en la Isla Mocolí, edificaciones gubernamentales, remodelaciones de edificios y construcciones hospitalarias, demostrando nuestra capacidad y experiencia en distintos sectores</p>
+    </div>
+    <div class="proyectos-content">
+      <div class="proyectos-header">
+        <div class="proyectos-divider"></div>
+        <h2 class="proyectos-title">Nuestros proyectos</h2>
+      </div>
+      <p class="proyectos-intro">En cada proyecto reflejamos nuestra versatilidad y compromiso. Realizamos desde grandes edificaciones hasta viviendas familiares y remodelaciones, adaptándonos a las necesidades de cada cliente con calidad, eficiencia y confianza.</p>
+      <div class="proyectos-cards">
+        <div class="proyecto-card">
+          <div class="proyecto-icon">
+            <svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M8 42V18L25 8L42 18V42H28V28H22V42H8Z" stroke="#0E1B1B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <p class="proyecto-name">Edificaciones<br>grandes</p>
+        </div>
+        <div class="proyecto-card">
+          <div class="proyecto-icon">
+            <svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M10 20L25 8L40 20V42H30V30H20V42H10V20Z" stroke="#0E1B1B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </div>
+          <p class="proyecto-name">Casas</p>
+        </div>
+        <div class="proyecto-card">
+          <div class="proyecto-icon">
+            <svg width="50" height="50" viewBox="0 0 50 50" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M25 8C19.477 8 15 12.477 15 18V42H35V18C35 12.477 30.523 8 25 8Z" stroke="#0E1B1B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+              <path d="M15 25H35M20 32H30" stroke="#0E1B1B" stroke-width="2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <p class="proyecto-name">Remodelaciones</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Blog Section -->
+<section class="blog-section">
+  <div class="blog-header">
+    <div class="blog-divider"></div>
+    <h2 class="blog-title">Ladeconsa Blogs</h2>
+  </div>
+  <div class="blog-cards">
+    <div class="blog-card">
+      <div class="blog-image">
+        <span class="blog-tag">Interior</span>
+      </div>
+      <div class="blog-footer">
+        <p class="blog-text">Amet eu facilisi posuere ut at cras non ipsum proin</p>
+      </div>
+    </div>
+    <div class="blog-card">
+      <div class="blog-image">
+        <span class="blog-tag">Interior</span>
+      </div>
+      <div class="blog-footer">
+        <p class="blog-text">Emu facilisi posuere ut at cras non ipsum proin</p>
+      </div>
+    </div>
+    <div class="blog-card">
+      <div class="blog-image">
+        <span class="blog-tag">Interior</span>
+      </div>
+      <div class="blog-footer">
+        <p class="blog-text">Fasacilisi posuere ut at cras non ipsum proin</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- Clientes Section -->
+<section class="clientes-section">
+  <div class="clientes-logos">
+    <div class="cliente-logo">📱</div>
+    <div class="cliente-logo">🌐</div>
+    <div class="cliente-logo">⚙️</div>
+    <div class="cliente-logo">💼</div>
+  </div>
+  <div class="clientes-header">
+    <h2 class="clientes-title">Nuestros clientes</h2>
+    <div class="clientes-divider"></div>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer class="footer">
+  <div class="footer-separator"></div>
+  <div class="footer-content">
+    <div class="footer-item">
+      <span class="footer-icon">✉️</span>
+      <span class="footer-text">proyectos@ladeconsa.com.ec</span>
+    </div>
+    <div class="footer-item">
+      <span class="footer-icon">📞</span>
+      <span class="footer-text">+593999999999</span>
+    </div>
+    <div class="footer-item">
+      <span class="footer-icon">📍</span>
+      <span class="footer-text">Condominio San Bernardo 2 via</span>
+    </div>
+  </div>
+  <div class="footer-copyright">Copyright 2025</div>
+</footer>
