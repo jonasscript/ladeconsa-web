@@ -6,7 +6,7 @@ on:
     branches:
       - deploy-frontend
     paths:
-      - 'labs/frontend/**'
+      - 'frontend/**'
   workflow_dispatch: # Permite ejecutar manualmente el workflow
 
 jobs:
@@ -22,23 +22,23 @@ jobs:
         with:
           node-version: '20'
           cache: 'npm'
-          cache-dependency-path: labs/frontend/package-lock.json
+          cache-dependency-path: frontend/package-lock.json
         
       - name: Install dependencies
-        working-directory: labs/frontend
+        working-directory: frontend
         run: npm ci
         
       - name: Build Angular app
-        working-directory: labs/frontend
+        working-directory: frontend
         run: npm run build -- --configuration production
         
       - name: Create deployment package
-        working-directory: labs/frontend
+        working-directory: frontend
         run: |
           # Importante: verifica la estructura de tu carpeta 'dist'
           # Generalmente es dist/frontend
           cd dist/frontend
-          tar -czf ../../../frontend-build.tar.gz *
+          tar -czf ../../frontend-build.tar.gz *
         
       - name: Deploy to server via SSH
         uses: appleboy/scp-action@v0.1.7
@@ -48,10 +48,10 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           # Namecheap/cPanel a menudo usa el puerto SSH 22 o 21098
           port: ${{ secrets.SERVER_PORT || 22 }} 
-          source: "labs/frontend/frontend-build.tar.gz"
+          source: "frontend/frontend-build.tar.gz"
           target: "/tmp/"
-          # strip_components: 2 es correcto si el tar contiene 'dist/frontend/browser/...'
-          strip_components: 2 
+          # strip_components: 1 porque ahora el tar está en frontend/frontend-build.tar.gz
+          strip_components: 1 
         
       - name: Extract and move files on server
         uses: appleboy/ssh-action@v1.2.0
@@ -68,7 +68,7 @@ jobs:
             
             # **Asegúrate de reemplazar 'TU_USUARIO_CPANEL' y 'tu.dominio.com'**
             # Si tu app va en la raíz de public_html:
-            # DEPLOY_DIR=/home/ladesvww/public_html
+            DEPLOY_DIR=/home/ladesvww/public_html
             
             # --- Lógica de Despliegue (sin cambios) ---
             
