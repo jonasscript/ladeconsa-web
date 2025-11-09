@@ -64,19 +64,34 @@ jobs:
             ls -dt public_html_backup_* 2>/dev/null | tail -n +6 | xargs rm -rf 2>/dev/null || true
             echo "Old backups cleaned"
       
-      - name: Deploy to server via SCP
-        uses: appleboy/scp-action@v0.1.7
+      - name: Deploy to server via SSH
+        uses: easingthemes/ssh-deploy@v4.1.8
         with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USERNAME }}
-          key: ${{ secrets.SERVER_SSH_KEY }}
-          port: ${{ secrets.SERVER_PORT }}
-          source: "frontend/dist/frontend/*"
-          target: "/home/ladesvww/public_html/"
-          strip_components: 3
-          rm: false
-          timeout: 300s
-          command_timeout: 15m
+          SSH_PRIVATE_KEY: ${{ secrets.SERVER_SSH_KEY }}
+          ARGS: "-avz --delete --exclude=.git --exclude=node_modules"
+          SOURCE: "frontend/dist/frontend/"
+          REMOTE_HOST: ${{ secrets.SERVER_HOST }}
+          REMOTE_USER: ${{ secrets.SERVER_USERNAME }}
+          REMOTE_PORT: ${{ secrets.SERVER_PORT }}
+          TARGET: "/home/ladesvww/public_html"
+          SCRIPT_BEFORE: |
+            DEPLOY_DIR=/home/ladesvww/public_html
+            TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+            BACKUP_DIR="${DEPLOY_DIR}_backup_${TIMESTAMP}"
+            
+            # Crear backup si existe el directorio
+            if [ -d "$DEPLOY_DIR" ] && [ "$(ls -A $DEPLOY_DIR 2>/dev/null)" ]; then
+              echo "Creating backup at $BACKUP_DIR"
+              cp -r "$DEPLOY_DIR" "$BACKUP_DIR"
+              echo "Backup created successfully"
+            else
+              echo "No existing files to backup"
+            fi
+            
+            # Limpiar backups antiguos (mantener solo los últimos 5)
+            cd /home/ladesvww
+            ls -dt public_html_backup_* 2>/dev/null | tail -n +6 | xargs rm -rf 2>/dev/null || true
+            echo "Old backups cleaned"
         
       - name: Notify deployment status
         if: always()
